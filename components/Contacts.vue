@@ -19,7 +19,12 @@
       <button class="save" @click="saveChangedContact">CLOSE</button>
     </Dialog>
     <SearchBar @filter-value="filterData" />
-    <div class="item" v-for="item in filteredList.length || this.input.length ? filteredList : $store.getters.getLocalContacts" :key="item.id">
+    <div
+      v-if="$store.getters.getLocalContacts.length || filteredList.length"
+      class="item"
+      v-for="item in filteredList.length || this.input.length ? filteredList : $store.getters.getLocalContacts"
+      :key="item.id"
+    >
       {{item.name}}
       <div class="buttons">
         <button class="show" @click="showInfoDialog(item)">Show</button>
@@ -27,6 +32,7 @@
         <button class="delete" @click="showDeleteDialog(item)">Del</button>
       </div>
     </div>
+    <div v-else class="no-posts">No contacts found...</div>
   </div>
 </template>
 
@@ -90,6 +96,7 @@ export default {
     },
     removeContact(){
       this.$store.commit('REMOVE_CONTACT', this.currentContact.id);
+      this.filteredList = this.filteredList.filter(item => item.id !== this.currentContact.id)
       this.hideDialog()
     },
     hideDialog(){
