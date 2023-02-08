@@ -1,5 +1,13 @@
 <template>
-  <input v-model="input" type="text">
+  <div>
+    <input v-model="input" type="text">
+    Sort by:
+    <select>
+      <option>default</option>
+      <option>data ^</option>
+      <option>data down</option>
+    </select>
+  </div>
 </template>
 
 <script>
@@ -9,7 +17,7 @@ export default {
     return {
       input: ''
     }
-  }
+  },
 }
 </script>
 
