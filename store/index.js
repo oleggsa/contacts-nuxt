@@ -8,11 +8,6 @@ export const getters = {
   getLocalContacts(state) {
     return state.contacts
   },
-  getFilteredArray(state, value){
-    console.log('filter works')
-    let filtered = state.contacts.filter(item => console.log(item.number))
-    console.log(filtered)
-  }
 }
 
 export const mutations = {

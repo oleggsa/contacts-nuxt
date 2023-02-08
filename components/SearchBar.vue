@@ -1,6 +1,6 @@
 <template>
   <div>
-    <input v-model="input" type="text">
+    <input v-model="input" @keyup="filterValue" type="text">
     Sort by:
     <select>
       <option>default</option>
@@ -18,6 +18,11 @@ export default {
       input: ''
     }
   },
+  methods: {
+    filterValue() {
+      this.$emit('filter-value', this.input)
+    }
+  }
 }
 </script>
 

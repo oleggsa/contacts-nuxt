@@ -18,8 +18,8 @@
       <div>{{currentContact?.number}}</div>
       <button class="save" @click="saveChangedContact">CLOSE</button>
     </Dialog>
-    <SearchBar />
-    <div class="item" v-for="item in $store.getters.getLocalContacts" :key="item.id">
+    <SearchBar @filter-value="filterData" />
+    <div class="item" v-for="item in filteredList.length || this.input.length ? filteredList : $store.getters.getLocalContacts" :key="item.id">
       {{item.name}}
       <div class="buttons">
         <button class="show" @click="showInfoDialog(item)">Show</button>
@@ -40,6 +40,7 @@ export default {
   data() {
     return {
       contactsList: [],
+      filteredList: [],
       input: "",
       isEditDialogVisible: false,
       isDeleteDialogVisible: false,
@@ -48,9 +49,6 @@ export default {
       changedContactName: '',
       changedContactNumber: ''
     };
-  },
-  mounted() {
-    this.contactsList = this.$store.getters.getLocalContacts
   },
   methods: {
     showInfoDialog(contact){
@@ -83,6 +81,12 @@ export default {
       }
       this.$store.commit('UPDATE_CONTACT', editedContact)
       this.hideDialog()
+    },
+    filterData(e){
+      this.input = e;
+      this.contactsList = this.$store.getters.getLocalContacts;
+      this.filteredList = this.contactsList.filter(item => item.number.toString().includes(this.input));
+      console.log(this.filteredList)
     },
     removeContact(){
       this.$store.commit('REMOVE_CONTACT', this.currentContact.id);
