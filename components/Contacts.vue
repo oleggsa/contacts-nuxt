@@ -21,6 +21,8 @@
       <div class="show-dialog">
         <div>{{currentContact?.name}}</div>
         <div>{{currentContact?.number}}</div>
+        <div>time {{currentContact?.date}}</div>
+        <div>{{currentContact?.id}}</div>
         <button class="save" @click="hideDialog">CLOSE</button>
       </div>
     </Dialog>
@@ -62,7 +64,6 @@ export default {
     return {
       contactsList: [],
       filteredList: [],
-      sortedList: [],
       input: "",
       isEditDialogVisible: false,
       isDeleteDialogVisible: false,
@@ -104,16 +105,17 @@ export default {
     changedContactNumberFn(e){
       this.changedContactNumber = e.target.value
     },
-    saveNewContact(){
+    async saveNewContact(){
       const newContact = {
         id: Date.now(),
         date: Date.now(),
         name: this.changedContactName,
         number: this.changedContactNumber
       }
-      this.$store.dispatch('createContactOnServer', newContact)
+      await this.$store.dispatch('createContactOnServer', newContact)
       this.contactsList = this.$store.getters.getLocalContacts
       this.hideDialog()
+      this.$forceUpdate();
     },
     async saveChangedContact(){
       const editedContact = {
@@ -127,14 +129,18 @@ export default {
       this.hideDialog()
     },
     findContacts(e){
+      this.input = e;
       this.filteredList = this.$store.getters.getFilteredContacts(e);
+      this.$forceUpdate();
     },
     sortContacts(e){
       console.log('sort type', e)
-      this.filteredList = this.$store.getters.getSortedContacts(e);
+      this.$store.commit('SORT_CONTACTS', e)
+      this.contactsList = this.$store.getters.getLocalContacts;
     },
     async removeContact(){
       await this.$store.dispatch('removeContactOnServer', this.currentContact.id);
+      this.filteredList = this.filteredList.filter(contact => contact.id !== this.currentContact.id)
       this.contactsList = this.$store.getters.getLocalContacts
       this.hideDialog()
     },
