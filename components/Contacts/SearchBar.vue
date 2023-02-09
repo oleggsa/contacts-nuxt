@@ -2,15 +2,15 @@
   <div>
     <input v-model="input" @keyup="filterValue" type="text">
     <div class="modify-list">
-      <div class="sort">
-        Sort by:
+      <div class="modify-list__sort">
+        <span>Sort by:</span>
         <select @change="selectOption">
-          <option disabled value="">Choose</option>
+          <option selected disabled value="">choose</option>
           <option value="old-top">old on top</option>
           <option value="new-top">new on top</option>
         </select>
       </div>
-      <button class="create" @click="$emit('create-contact')">CREATE</button>
+      <button class="modify-list__create" @click="$emit('create-contact')">CREATE</button>
     </div>
   </div>
 </template>
@@ -45,9 +45,8 @@ input {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
-}
-
-.create {
-  padding: 3px;
+  &__.create {
+    padding: 3px;
+  }
 }
 </style>

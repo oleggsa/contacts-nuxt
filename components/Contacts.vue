@@ -21,7 +21,7 @@
       <div class="show-dialog">
         <div>{{currentContact?.name}}</div>
         <div>{{currentContact?.number}}</div>
-        <button class="save" @click="saveChangedContact">CLOSE</button>
+        <button class="save" @click="hideDialog">CLOSE</button>
       </div>
     </Dialog>
     <Dialog :show="isCreateDialogVisible" @hide-dialog="hideDialog">
@@ -31,7 +31,7 @@
         <button class="save" @click="saveNewContact">SAVE</button>
       </div>
     </Dialog>
-    <SearchBar @filter-value="filterData" @create-contact="showCreateDialog" @selected-sort="sortContacts" />
+    <SearchBar @filter-value="findContacts" @create-contact="showCreateDialog" @selected-sort="sortContacts" />
     <div
       v-if="this.input.length && filteredList.length || filteredList.length || contactsList.length && !this.input.length">
       <div
@@ -40,7 +40,7 @@
         :key="item.id"
       >
         {{item.name}}
-        <div class="buttons">
+        <div class="controls">
           <button class="show" @click="showInfoDialog(item)">Show</button>
           <button class="edit" @click="showEditDialog(item)">Edit</button>
           <button class="delete" @click="showDeleteDialog(item)">Del</button>
@@ -52,8 +52,8 @@
 </template>
 
 <script>
-import Dialog from './Dialog.vue';
-import SearchBar from './SearchBar.vue';
+import Dialog from '@/components/Contacts/Dialog.vue';
+import SearchBar from '@/components/Contacts/SearchBar.vue';
 
 export default {
   name: "Contacts",
@@ -74,11 +74,9 @@ export default {
       selectedSort: ''
     };
   },
-  mounted() {
-    setTimeout(() => {
-      this.contactsList = this.$store.getters.getLocalContacts
-      console.log('works')
-    }, 1000)
+  async mounted() {
+    await this.$store.dispatch("getServerContacts")
+    this.contactsList = this.$store.getters.getLocalContacts
   },
   methods: {
     showInfoDialog(contact){
@@ -113,36 +111,31 @@ export default {
         name: this.changedContactName,
         number: this.changedContactNumber
       }
-      console.log(newContact)
-      this.$store.commit('CREATE_CONTACT', newContact)
+      this.$store.dispatch('createContactOnServer', newContact)
+      this.contactsList = this.$store.getters.getLocalContacts
       this.hideDialog()
     },
-    saveChangedContact(){
+    async saveChangedContact(){
       const editedContact = {
         id: this.currentContact.id,
         date: Date.now(),
         name: this.changedContactName || this.currentContact.name,
         number: this.changedContactNumber || this.currentContact.number
       }
-      this.$store.commit('UPDATE_CONTACT', editedContact)
+      await this.$store.dispatch('updateContactOnServer', editedContact)
+      this.contactsList = this.$store.getters.getLocalContacts
       this.hideDialog()
     },
-    filterData(e){
-      this.input = e;
-      if(this.input){
-        this.filteredList = this.contactsList.filter(item => item.number.toString().includes(this.input));
-        console.log(this.filteredList)
-      } else {
-        this.filteredList = []
-      }
+    findContacts(e){
+      this.filteredList = this.$store.getters.getFilteredContacts(e);
     },
     sortContacts(e){
-      return this.selectedSort = e;
+      console.log('sort type', e)
+      this.filteredList = this.$store.getters.getSortedContacts(e);
     },
-    removeContact(){
-      this.$store.commit('REMOVE_CONTACT', this.currentContact.id);
-      console.log('removed')
-      this.contactsList = this.contactsList.filter(item => item.id !== this.currentContact.id);
+    async removeContact(){
+      await this.$store.dispatch('removeContactOnServer', this.currentContact.id);
+      this.contactsList = this.$store.getters.getLocalContacts
       this.hideDialog()
     },
     hideDialog(){
@@ -152,19 +145,19 @@ export default {
       this.isCreateDialogVisible = false;
     }
   },
-  watch: {
-    selectedSort(newValue){
-      this.sortedList = this.contactsList;
-      if(newValue === 'new-top'){
-        // this.sortedList.sort(function(a, b) {
-        //   return a.date - b.date;
-        // });
-        this.sortedList.sort((a, b) => {
-          console.log(a.date, b.date)
-        })
-      }
-    }
-  }
+  // watch: {
+  //   selectedSort(newValue){
+  //     this.sortedList = this.contactsList;
+  //     if(newValue === 'new-top'){
+  //       // this.sortedList.sort(function(a, b) {
+  //       //   return a.date - b.date;
+  //       // });
+  //       this.sortedList.sort((a, b) => {
+  //         console.log(a.date, b.date)
+  //       })
+  //     }
+  //   }
+  // }
 }
 </script>
 

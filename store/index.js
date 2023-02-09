@@ -1,4 +1,4 @@
-import dialog from "@/components/Dialog.vue";
+import API_URL from "@/utils/config";
 
 export const state = () => ({
   contacts: []
@@ -6,32 +6,55 @@ export const state = () => ({
 
 export const getters = {
   getLocalContacts(state) {
+    console.log('state', state)
     return state.contacts
   },
+  getFilteredContacts: (state) => (inputVal) => {
+    return state.contacts.filter(contact => contact.number.toString().includes(inputVal))
+  },
+  getSortedContacts: (state) => (sortType) => {
+    return sortType === 'new-top' ? state.contacts.reverse() : state.contacts
+  }
 }
 
 export const mutations = {
   SET_CONTACTS(state, data) {
     state.contacts = data
   },
-  REMOVE_CONTACT(state, id) {
-    state.contacts = state.contacts.filter(item => item.id !== id)
-    console.log('new data', state.contacts)
-    this.$axios.$delete('https://63e3735fc919fe386c06aab8.mockapi.io/contacts/' + id)
-  },
-  UPDATE_CONTACT(state, contact) {
-    let currentIndex = state.contacts.findIndex(item => item.id === contact.id)
-    state.contacts[currentIndex] = contact
-    this.$axios.$put('https://63e3735fc919fe386c06aab8.mockapi.io/contacts/' + contact.id, contact)
-  },
-  CREATE_CONTACT(state, contact) {
-    this.$axios.$post('https://63e3735fc919fe386c06aab8.mockapi.io/contacts/', contact)
-  }
 }
 
 export const actions = {
   async getServerContacts({ state }) {
-    const contacts = await this.$axios.get('https://63e3735fc919fe386c06aab8.mockapi.io/contacts')
-    await this.commit('SET_CONTACTS', contacts.data)
+    try {
+      const contacts = await this.$axios.get(API_URL)
+      console.log('contacts', contacts)
+      this.commit('SET_CONTACTS', contacts.data)
+    } catch (e) {
+      console.error(e)
+    }
+  },
+  async removeContactOnServer({state, dispatch}, id){
+    try {
+      await this.$axios.$delete(API_URL + id)
+      await dispatch('getServerContacts')
+    } catch (e) {
+      console.error(e)
+    }
+  },
+  async updateContactOnServer({state, dispatch}, contact){
+    try {
+      await this.$axios.$put(API_URL + contact.id, contact)
+      await dispatch('getServerContacts')
+    } catch (e) {
+      console.error(e)
+    }
+  },
+  async createContactOnServer({state, dispatch}, contact){
+    try {
+      await this.$axios.$post(API_URL, contact)
+      await dispatch('getServerContacts')
+    } catch (e) {
+      console.error(e)
+    }
   }
 }
