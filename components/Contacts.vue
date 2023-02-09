@@ -21,8 +21,6 @@
       <div class="show-dialog">
         <div>{{currentContact?.name}}</div>
         <div>{{currentContact?.number}}</div>
-        <div>time {{currentContact?.date}}</div>
-        <div>{{currentContact?.id}}</div>
         <button class="save" @click="hideDialog">CLOSE</button>
       </div>
     </Dialog>
