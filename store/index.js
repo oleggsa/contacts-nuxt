@@ -6,21 +6,33 @@ export const state = () => ({
 
 export const getters = {
   getLocalContacts(state) {
-    console.log('state', state)
     return state.contacts
   },
   getFilteredContacts: (state) => (inputVal) => {
     return state.contacts.filter(contact => contact.number.toString().includes(inputVal))
   },
-  getSortedContacts: (state) => (sortType) => {
-    return sortType === 'new-top' ? state.contacts.reverse() : state.contacts
-  }
+  // getSortedContacts: (state) => (sortType) => {
+  //   let sortedContacts = [...state.contacts].sort((a, b) => {return a.date - b.date})
+  //     if (sortType === 'new-top'){
+  //       return sortedContacts.reverse()
+  //     } else {
+  //       return sortedContacts
+  //     }
+  // },
 }
 
 export const mutations = {
   SET_CONTACTS(state, data) {
     state.contacts = data
   },
+  SORT_CONTACTS(state, sortType) {
+    let sortedContacts = [...state.contacts].sort((a, b) => {return a.date - b.date})
+    if (sortType === 'new-top'){
+      state.contacts = sortedContacts.reverse()
+    } else {
+      state.contacts = sortedContacts
+    }
+  }
 }
 
 export const actions = {
