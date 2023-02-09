@@ -6,6 +6,7 @@ export const state = () => ({
 
 export const getters = {
   getLocalContacts(state) {
+    console.log('state', state)
     return state.contacts
   },
   getFilteredContacts: (state) => (inputVal) => {
@@ -17,6 +18,10 @@ export const mutations = {
   SET_CONTACTS(state, data) {
     state.contacts = data
   },
+  SORT_CONTACTS(state, sortType){
+    let sortedContacts = [...state.contacts].sort((a, b) => a.date - b.date)
+    state.contacts = sortType === 'new-top' ? sortedContacts.reverse() : sortedContacts
+  }
 }
 
 export const actions = {
