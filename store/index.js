@@ -20,11 +20,13 @@ export const mutations = {
     this.$axios.$delete('https://63e3735fc919fe386c06aab8.mockapi.io/contacts/' + id)
   },
   UPDATE_CONTACT(state, contact) {
-    console.log('contact in store', contact)
     let currentIndex = state.contacts.findIndex(item => item.id === contact.id)
     state.contacts[currentIndex] = contact
     this.$axios.$put('https://63e3735fc919fe386c06aab8.mockapi.io/contacts/' + contact.id, contact)
   },
+  CREATE_CONTACT(state, contact) {
+    this.$axios.$post('https://63e3735fc919fe386c06aab8.mockapi.io/contacts/', contact)
+  }
 }
 
 export const actions = {

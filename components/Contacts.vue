@@ -1,35 +1,50 @@
 <template>
   <div class="list">
     <Dialog :show="isDeleteDialogVisible" @hide-dialog="hideDialog">
-      <div>Delete contact {{currentContact?.name}}</div>
-      <div>Are you sure?</div>
-      <div class="delete-modal-buttons">
-        <button class="button-yes" @click="removeContact">YES</button>
-        <button class="button-no" @click="hideDialog">NO</button>
+      <div class="confirm-dialog">
+        <div>Delete contact {{currentContact?.name}}</div>
+        <div>Are you sure?</div>
+        <div class="delete-modal-buttons">
+          <button class="button-yes" @click="removeContact">YES</button>
+          <button class="button-no" @click="hideDialog">NO</button>
+        </div>
       </div>
     </Dialog>
     <Dialog :show="isEditDialogVisible" @hide-dialog="hideDialog">
-      <input type="text" :value="currentContact?.name" @change="changedContactNameFn">
-      <input type="number" :value="currentContact?.number" @change="changedContactNumberFn">
-      <button class="save" @click="saveChangedContact">SAVE</button>
+      <div class="edit-dialog">
+        <input type="text" :value="currentContact?.name" @change="changedContactNameFn">
+        <input type="number" :value="currentContact?.number" @change="changedContactNumberFn">
+        <button class="save" @click="saveChangedContact">SAVE</button>
+      </div>
     </Dialog>
     <Dialog :show="isShowDialogVisible" @hide-dialog="hideDialog">
-      <div>{{currentContact?.name}}</div>
-      <div>{{currentContact?.number}}</div>
-      <button class="save" @click="saveChangedContact">CLOSE</button>
+      <div class="show-dialog">
+        <div>{{currentContact?.name}}</div>
+        <div>{{currentContact?.number}}</div>
+        <button class="save" @click="saveChangedContact">CLOSE</button>
+      </div>
     </Dialog>
-    <SearchBar @filter-value="filterData" />
+    <Dialog :show="isCreateDialogVisible" @hide-dialog="hideDialog">
+      <div class="edit-dialog">
+        <input type="text" @change="changedContactNameFn">
+        <input type="number" @change="changedContactNumberFn">
+        <button class="save" @click="saveNewContact">SAVE</button>
+      </div>
+    </Dialog>
+    <SearchBar @filter-value="filterData" @create-contact="showCreateDialog" @selected-sort="sortContacts" />
     <div
-      v-if="$store.getters.getLocalContacts.length || filteredList.length"
-      class="item"
-      v-for="item in filteredList.length || this.input.length ? filteredList : $store.getters.getLocalContacts"
-      :key="item.id"
-    >
-      {{item.name}}
-      <div class="buttons">
-        <button class="show" @click="showInfoDialog(item)">Show</button>
-        <button class="edit" @click="showEditDialog(item)">Edit</button>
-        <button class="delete" @click="showDeleteDialog(item)">Del</button>
+      v-if="this.input.length && filteredList.length || filteredList.length || contactsList.length && !this.input.length">
+      <div
+        class="item"
+        v-for="item in filteredList.length || this.input.length ? filteredList : contactsList"
+        :key="item.id"
+      >
+        {{item.name}}
+        <div class="buttons">
+          <button class="show" @click="showInfoDialog(item)">Show</button>
+          <button class="edit" @click="showEditDialog(item)">Edit</button>
+          <button class="delete" @click="showDeleteDialog(item)">Del</button>
+        </div>
       </div>
     </div>
     <div v-else class="no-posts">No contacts found...</div>
@@ -47,20 +62,33 @@ export default {
     return {
       contactsList: [],
       filteredList: [],
+      sortedList: [],
       input: "",
       isEditDialogVisible: false,
       isDeleteDialogVisible: false,
       isShowDialogVisible: false,
+      isCreateDialogVisible: false,
       currentContact: null,
       changedContactName: '',
-      changedContactNumber: ''
+      changedContactNumber: '',
+      selectedSort: ''
     };
+  },
+  mounted() {
+    setTimeout(() => {
+      this.contactsList = this.$store.getters.getLocalContacts
+      console.log('works')
+    }, 1000)
   },
   methods: {
     showInfoDialog(contact){
       console.log('showInfoDialog')
       this.currentContact = contact;
       this.isShowDialogVisible = true
+    },
+    showCreateDialog(){
+      console.log('showCreateDialog')
+      this.isCreateDialogVisible = true
     },
     showEditDialog(contact){
       console.log('showEditDialog')
@@ -78,6 +106,17 @@ export default {
     changedContactNumberFn(e){
       this.changedContactNumber = e.target.value
     },
+    saveNewContact(){
+      const newContact = {
+        id: Date.now(),
+        date: Date.now(),
+        name: this.changedContactName,
+        number: this.changedContactNumber
+      }
+      console.log(newContact)
+      this.$store.commit('CREATE_CONTACT', newContact)
+      this.hideDialog()
+    },
     saveChangedContact(){
       const editedContact = {
         id: this.currentContact.id,
@@ -90,20 +129,40 @@ export default {
     },
     filterData(e){
       this.input = e;
-      this.contactsList = this.$store.getters.getLocalContacts;
-      this.filteredList = this.contactsList.filter(item => item.number.toString().includes(this.input));
-      console.log(this.filteredList)
+      if(this.input){
+        this.filteredList = this.contactsList.filter(item => item.number.toString().includes(this.input));
+        console.log(this.filteredList)
+      } else {
+        this.filteredList = []
+      }
+    },
+    sortContacts(e){
+      return this.selectedSort = e;
     },
     removeContact(){
       this.$store.commit('REMOVE_CONTACT', this.currentContact.id);
-      this.filteredList = this.filteredList.filter(item => item.id !== this.currentContact.id)
+      console.log('removed')
+      this.contactsList = this.contactsList.filter(item => item.id !== this.currentContact.id);
       this.hideDialog()
     },
     hideDialog(){
-      console.log('hideDial fn')
       this.isEditDialogVisible = false;
       this.isDeleteDialogVisible = false;
       this.isShowDialogVisible = false;
+      this.isCreateDialogVisible = false;
+    }
+  },
+  watch: {
+    selectedSort(newValue){
+      this.sortedList = this.contactsList;
+      if(newValue === 'new-top'){
+        // this.sortedList.sort(function(a, b) {
+        //   return a.date - b.date;
+        // });
+        this.sortedList.sort((a, b) => {
+          console.log(a.date, b.date)
+        })
+      }
     }
   }
 }
@@ -134,5 +193,20 @@ export default {
 
 button {
   padding: 2px;
+}
+
+.show-dialog,
+.confirm-dialog,
+.edit-dialog {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-posts {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 24px;
 }
 </style>
